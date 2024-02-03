@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum RegistrationStatus {
+  Waiting
+  Approved
+  Rejected
+}
+
+enum RoomType {
+  Group
+  Personal
+}
+
+model User {
+  login_id String @unique
+  user_id Int @id @default(autoincrement())
+  name String
+  password String
+  registration_date DateTime
+  phone_number String
+  interest String
+  ClubRegistration ClubRegistration[]
+  ChatMessage ChatMessage[]
+  ChatRoom ChatRoom[]
+}
+
+model Club {
+  club_id Int @id @default(autoincrement())
+  name String
+  description String
+  member_count Int
+  creation_date DateTime
+  ClubRegistration ClubRegistration[]
+  ChatRoom ChatRoom[]
+}
+
+model ClubRegistration {
+  registration_id Int @id @default(autoincrement())
+  user_id Int
+  club_id Int
+  status RegistrationStatus @default(Waiting)
+  application_date DateTime
+  User User @relation(fields: [user_id], references: [user_id])
+  Club Club @relation(fields: [club_id], references: [club_id])
+}
+
+model ChatRoom {
+  chatroom_id Int @id @default(autoincrement())
+  name String
+  room_type RoomType
+  club_id Int?
+  partner_id Int?
+  Club Club? @relation(fields: [club_id], references: [club_id])
+  User User? @relation(fields: [partner_id], references: [user_id])
+  ChatMessage ChatMessage[]
+}
+
+model ChatMessage {
+  message_id Int @id @default(autoincrement())
+  user_id Int
+  chatroom_id Int
+  content String
+  sent_time DateTime @default(now())
+  User User @relation(fields: [user_id], references: [user_id])
+  ChatRoom ChatRoom @relation(fields: [chatroom_id], references: [chatroom_id])
+}
